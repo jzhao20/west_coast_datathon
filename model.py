@@ -95,6 +95,8 @@ def get_scores(index):
         try:
             probs.append(last_token_softmax[index][0])
         except:
+            print(index)
+            print(sentence)
             unk=True
             break
 
@@ -106,7 +108,7 @@ def get_scores(index):
         impressions2.pop(-1)
         winner2.pop(-1)
         click_rate2.pop(-1)
-for i in range(0,len(headlines)):
+for i in range(0,2):
     if i%50 == 0:
         print(i)
     get_scores(i)
