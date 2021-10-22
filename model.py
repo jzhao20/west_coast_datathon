@@ -83,6 +83,7 @@ def get_scores(index):
     click_rate2.append(click_rate[index])
     headline_length=headlines[index].count(" ")+1
     probs=[]
+    unk=False
     for i in range(headline_length, len(sentence)):
         soi = ' '.join(sentence[0:i])
         input=tokenizer.encode(soi, add_special_tokens=False, return_tensors="pt")
@@ -91,12 +92,22 @@ def get_scores(index):
         last_token_prediction = model_output[:, -1]
         last_token_softmax = torch.softmax(last_token_prediction, dim=-1).squeeze()
         index=tokenizer.encode(sentence[i])
-        probs.append(last_token_softmax[index][0])
-    
-    
-    perplexities.append(get_perplexity(probs))
+        try:
+            probs.append(last_token_softmax[index][0])
+        except:
+            unk=True
+            break
+
+    if not unk:
+        perplexities.append(get_perplexity(probs))
+    else:
+        headlines2.pop(-1)
+        ledes2.pop(-1)
+        impressions2.pop(-1)
+        winner2.pop(-1)
+        click_rate2.pop(-1)
 for i in range(0,len(headlines)):
-    if i%500 == 0:
+    if i%50 == 0:
         print(i)
     get_scores(i)
 dict_to_export={
