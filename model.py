@@ -109,7 +109,7 @@ def get_scores(index):
         impressions2.pop(-1)
         winner2.pop(-1)
         click_rate2.pop(-1)
-for i in range(0,2):
+for i in range(0,len(headlines)):
     if i%50 == 0:
         print(i)
     get_scores(i)
