@@ -97,6 +97,7 @@ def get_scores(index):
         except:
             print(index)
             print(sentence)
+            print(soi)
             unk=True
             break
 
