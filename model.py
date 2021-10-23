@@ -15,18 +15,22 @@ if not exists("./training_data/cleaned_up_ledes.csv"):
     clicks=df['clicks']
     impressions=df['impressions']
     winner=df['winner']
+    test_id=df['test_id']
+    first_place=df['first_place']
     #clean up so there are no duplicates and then do this save it to a csv file that's called cleaned up with headlines and ledes
     set_cleaned_up={}
     for i in range(0,len(ledes)):
         item = (headlines[i],ledes[i])
         if item not in set_cleaned_up or winner[i]:
-            set_cleaned_up[item]=[clicks[i],impressions[i],winner[i]]
+            set_cleaned_up[item]=[clicks[i],impressions[i],winner[i],test_id[i],first_place[i]]
     headlines=[]
     ledes=[]
     clicks=[]
     impressions=[]
     winner=[]
     click_rate=[]
+    test_id=[]
+    first_place=[]
     for elements in set_cleaned_up.keys():
         if not (pd.isna(elements[0]) or pd.isna(elements[1])):
             headline=elements[0]
@@ -41,11 +45,15 @@ if not exists("./training_data/cleaned_up_ledes.csv"):
             impressions.append(set_cleaned_up[elements][1])
             winner.append(set_cleaned_up[elements][2])
             click_rate.append(set_cleaned_up[elements][0]/set_cleaned_up[elements][1])
+            test_id.append(set_cleaned_up[elements][-2])
+            first_place.append(set_cleaned_up[elements][-1])
     dict_to_export={
+        'test_id':test_id,
         'headline':headlines,
         'lede':ledes,
         'clicks':clicks,
         'impressions':impressions,
+        'first_place':first_place,
         'winner':winner,
         'click_rate':click_rate
     }
@@ -107,8 +115,10 @@ def get_scores(index):
         headlines2.pop(-1)
         ledes2.pop(-1)
         impressions2.pop(-1)
+        clicks2.pop(-1)
         winner2.pop(-1)
         click_rate2.pop(-1)
+
 for i in range(0,len(headlines)):
     if i%50 == 0:
         print(i)
@@ -122,5 +132,22 @@ dict_to_export={
         'winner':winner2,
         'click_rate':click_rate2
 }
+
+def export(dictionary_of_interest, name):
+    df=pd.DataFrame(dictionary_of_interest)
+    df.to_csv(f'training_data/{name}.csv')
+#write tmp just in case
+df_headline={'headline':headlines2}
+export(df_headline,'headline')
+df_ledes={'lede':ledes2}
+export(df_ledes,'ledes')
+df_clicks={'clicks':clicks2}
+export(df_clicks,'clicks')
+df_impressions={'impressions':impressions2}
+export(df_impressions,'impressions')
+df_winner={'winner':winner2}
+export(df_winner,'winner')
+df_clickrate={'click_rate':click_rate2}
+export(df_clickrate,'clickrate')
 df=pd.DataFrame(dict_to_export)
 df.to_csv('training_data/perplexities.csv',index=False)
