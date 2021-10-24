@@ -77,22 +77,15 @@ impressions2=[]
 winner2=[]
 click_rate2=[]
 perplexities=[]
+perplexities2=[]
 def get_perplexity(values):
     perplexity_score=sum([math.log(value) for value in values])/len(values)
     return -perplexity_score
-def get_scores(index):
-    sentence=f'{headlines[index]} {ledes[index]}'
-    sentence=sentence.split(" ")
-    headlines2.append(headlines[index])
-    ledes2.append(ledes[index])
-    clicks2.append(clicks[index])
-    impressions2.append(impressions[index])
-    winner2.append(winner[index])
-    click_rate2.append(click_rate[index])
-    headline_length=headlines[index].count(" ")+1
+
+def get_probs(sentence, range_of_val):
+    l,r=range_of_val
     probs=[]
-    unk=False
-    for i in range(headline_length, len(sentence)):
+    for i in range(l,r):
         soi = ' '.join(sentence[0:i])
         input=tokenizer.encode(soi, add_special_tokens=False, return_tensors="pt")
         output=model(input)
@@ -103,21 +96,31 @@ def get_scores(index):
         try:
             probs.append(last_token_softmax[index][0])
         except:
-            print(index)
-            print(sentence)
-            print(soi)
-            unk=True
-            break
-
-    if not unk:
-        perplexities.append(get_perplexity(probs))
-    else:
+            return False
+    return probs
+def get_scores(index):
+    sentence=f'{headlines[index]} {ledes[index]}'
+    sentence=sentence.split(" ")
+    headlines2.append(headlines[index])
+    ledes2.append(ledes[index])
+    clicks2.append(clicks[index])
+    impressions2.append(impressions[index])
+    winner2.append(winner[index])
+    click_rate2.append(click_rate[index])
+    headline_length=headlines[index].count(" ")+1
+    unk=False
+    prob1 = get_probs(sentence, (headline_length,len(sentence)))
+    prob2 = get_probs(sentence, (1, headline_length))
+    if prob1 == False or prob2 ==False:
         headlines2.pop(-1)
         ledes2.pop(-1)
         impressions2.pop(-1)
         clicks2.pop(-1)
         winner2.pop(-1)
         click_rate2.pop(-1)
+    else:
+        perplexities.append(get_perplexity(prob1))
+        perplexities2.append(get_perplexity(prob2))
 
 for i in range(0,len(headlines)):
     if i%50 == 0:
@@ -126,28 +129,12 @@ for i in range(0,len(headlines)):
 dict_to_export={
         'headline':headlines2,
         'lede':ledes2,
-        'perplexity':perplexities,
+        'perplexity_headline':perplexities2,
+        'perplexity_lede':perplexities,
         'clicks':clicks2,
         'impressions':impressions2,
         'winner':winner2,
         'click_rate':click_rate2
 }
-
-def export(dictionary_of_interest, name):
-    df=pd.DataFrame(dictionary_of_interest)
-    df.to_csv(f'training_data/{name}.csv')
-#write tmp just in case
-df_headline={'headline':headlines2}
-export(df_headline,'headline')
-df_ledes={'lede':ledes2}
-export(df_ledes,'ledes')
-df_clicks={'clicks':clicks2}
-export(df_clicks,'clicks')
-df_impressions={'impressions':impressions2}
-export(df_impressions,'impressions')
-df_winner={'winner':winner2}
-export(df_winner,'winner')
-df_clickrate={'click_rate':click_rate2}
-export(df_clickrate,'clickrate')
 df=pd.DataFrame(dict_to_export)
 df.to_csv('training_data/perplexities.csv',index=False)
